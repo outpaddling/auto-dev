@@ -88,21 +88,13 @@ gen_page()
 
 .SH LIBRARY
 \" Indicate #includes, library name, -L and -l flags
-.nf
-.na
 $(cat c2man-library)
-.ad
-.fi
 
 \" Convention:
 \" Underline anything that is typed verbatim - commands, etc.
 .SH SYNOPSIS
 .PP
-.nf 
-.na
 $(cat c2man-synopsis)
-.ad
-.fi
 
 .SH ARGUMENTS
 .nf
@@ -115,15 +107,11 @@ $(cat c2man-arguments)
 $(cat c2man-description)
 EOM
 
-    if [ -e c2man-files ]; then
+    if [ -e c2man-returns ]; then
 	cat << EOM >> Temp-man/$name.3
 
 .SH RETURN VALUES
-.nf
-.na
 $(cat c2man-returns)
-.ad
-.fi
 EOM
     fi
     
@@ -143,11 +131,7 @@ EOM
 	cat << EOM >> Temp-man/$name.3
 
 .SH FILES
-.nf
-.na
 $(cat c2man-files)
-.ad
-.fi
 EOM
     fi
 
@@ -155,11 +139,7 @@ EOM
 	cat << EOM >> Temp-man/$name.3
 
 .SH ENVIRONMENT
-.nf
-.na
 $(cat c2man-env)
-.ad
-.fi
 EOM
     fi
     
