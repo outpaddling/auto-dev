@@ -1025,6 +1025,7 @@ while read line; do
     ignore)
 	if echo $line | egrep -q 'typedef[ \t]struct'; then
 	    mode=structure
+	    members=''
 	fi
 	;;
     
@@ -1048,7 +1049,10 @@ while read line; do
 	    if echo $line | egrep -q '\}[ \t].*_t\;'; then
 		# printf "members = $members\n"
 		mode=ignore
-		structure_type=$(echo $line | awk -F '[ \t\;]' '{ print $2 }')
+		# Squeeze multiple spaces before awk
+		structure_type=$(echo $line | tr -s ' ' \
+		    | awk -F '[ \t;]' '{ print $2 }')
+		# printf "structure_type = '$structure_type'\n"
 		gen_macros $structure_type $members
 	    else
 		# Remove inline comments if present
@@ -1081,7 +1085,7 @@ while read line; do
 		    member_name=${member_name##*\*}
 		fi
 		
-		printf "type = $member_type, name = $member_name\n"
+		# printf "type = $member_type, name = $member_name\n"
 		member="$member_type:$member_name"
 		if echo $code | fgrep -q '['; then
 		    array_size=$(echo $code | awk -F '[[\\]]' '{ print $2 }' | tr -d ' ')
@@ -1101,4 +1105,4 @@ while read line; do
     esac
 done < $HEADER
 pause
-c2man $C_CODE
+auto-c2man $C_CODE
