@@ -968,7 +968,7 @@ EOM
 
 #include <string.h>
 #include <ctype.h>
-#include "xstring.h"     // strlcpy() on Linux
+#include <xtend/string.h>   // strlcpy() on Linux
 #include "$HEADER"
 EOM
     
@@ -1057,7 +1057,7 @@ while read line; do
 		    | awk -F '[ \t;]' '{ print $2 }')
 		# printf "structure_type = '$structure_type'\n"
 		gen_macros $structure_type $members
-		exit 0
+		break   # One class per header
 	    else
 		# Remove inline comments if present
 		code=$(echo $line | awk -F '[;,]' '{ print $1 }')
