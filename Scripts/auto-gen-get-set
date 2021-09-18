@@ -6,8 +6,11 @@
 #
 #   Description:
 #       auto-gen-get-set generates get (accessor) and set (mutator) macros
-#       and set (mutator) functions for each structure in the header file
+#       and set (mutator) functions for the first structure in the header file
 #       file.h.
+#
+#       Each header should define exactly one class structure, following
+#       object-oriented design standards.
 #
 #       lib-flags (e.g. -lbiolibc) indicate the require library for the class
 #       and are included in the synopsis.
@@ -1054,6 +1057,7 @@ while read line; do
 		    | awk -F '[ \t;]' '{ print $2 }')
 		# printf "structure_type = '$structure_type'\n"
 		gen_macros $structure_type $members
+		exit 0
 	    else
 		# Remove inline comments if present
 		code=$(echo $line | awk -F '[;,]' '{ print $1 }')
