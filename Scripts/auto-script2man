@@ -114,15 +114,11 @@ $(cat script2man-arguments)
 $(cat script2man-description)
 EOM
 
-    if [ -e script2man-files ]; then
+    if [ -e script2man-returns ]; then
 	cat << EOM >> Temp-man/$name.1
 
 .SH RETURN VALUES
-.nf
-.na
 $(cat script2man-returns)
-.ad
-.fi
 EOM
     fi
     
@@ -154,11 +150,7 @@ EOM
 	cat << EOM >> Temp-man/$name.1
 
 .SH ENVIRONMENT
-.nf
-.na
 $(cat script2man-env)
-.ad
-.fi
 EOM
     fi
     
@@ -211,6 +203,7 @@ for source_file in "$@"; do
 	elif printf "%s\n" "$line" | grep -q '^[ ]*\#[ ]*Examples:'; then
 	    mode=examples
 	    line=''
+	    line_count=0
 	elif printf "%s\n" "$line" | grep -q '^[ ]*\#[ ]*Files:'; then
 	    mode=files
 	    line=''
@@ -256,14 +249,21 @@ for source_file in "$@"; do
 	    ;;
 	    
 	examples)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *#      ||')
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *# *$||')
-	    printf "%s\n" "$line" >> script2man-examples
+	    # First line is not real, just from line=''
+	    # Respect blanks after that
+	    if [ $line_count -gt 0 ]; then
+		line=$(printf "%s\n" "$line" | sed -e 's|^ *#       ||')
+		line=$(printf "%s\n" "$line" | sed -e 's|^ *# *$||')
+		printf "%s\n" "$line" >> script2man-examples
+	    fi
+	    line_count=$(($line_count + 1))
 	    ;;
 	    
 	files)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *# *||')
-	    printf "%s\n" "$line" >> script2man-files
+	    if [ ! -z "$line" ]; then
+		line=$(printf "%s\n" "$line" | sed -e 's|^ *# *||')
+		printf "%s\n" "$line" >> script2man-files
+	    fi
 	    ;;
 	    
 	env)
