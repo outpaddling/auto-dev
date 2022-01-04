@@ -969,6 +969,7 @@ EOM
 
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 #include <xtend/string.h>   // strlcpy() on Linux
 #include "$HEADER"
 EOM
