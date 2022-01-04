@@ -807,6 +807,98 @@ EOM
 
 ##########################################################################
 #   Function description:
+#       Generate mutator macros for arrays
+#       
+#   History:
+#   Date        Name        Modification
+#   2021-07-21  Jason Bacon Begin
+##########################################################################
+
+mutator_macros_array()
+{
+    local structure_type="$1"
+    local member_type="$2"
+    local member_name="$3"
+    local obj="$4"
+    local macro="$5"
+    
+    if [ "$member_type" = 'char *' ] || [ "$member_type" = char ]; then
+	printf "// FIXME: Assuming char array is a null-terminated string\n"
+	printf "%-47s %s\n" "#define ${macro}_CPY(ptr,val,array_size)" \
+		"strlcpy((ptr)->$member_name,val,array_size)"
+    else
+	printf "// FIXME: Assuming all elements should be copied\n"
+	printf "%-47s \\\\\n    %s\n" "#define ${macro}_CPY(ptr,val,array_size)" \
+	    "for (size_t c = 0; c < (array_size); ++c) (ptr)->$member_name[c] = val[c];"
+    fi
+    mutator_man $structure_type $member_type $member_name $obj ${macro}_CPY
+    printf "%-47s %s\n" "#define ${macro}_AE(ptr,c,val)" \
+	    "((ptr)->$member_name[c] = (val))"
+    mutator_man_ae $structure_type $member_type $member_name $obj $macro
+}
+
+
+##########################################################################
+#   Function description:
+#       Generate a mutator macro and man page
+#       
+#   History:
+#   Date        Name        Modification
+#   2021-07-16  Jason Bacon Begin
+##########################################################################
+
+mutator_functions()
+{
+    structure_type=$1
+    member=$2
+
+if echo $member | fgrep -q ':array:'; then
+    array=true
+    array_size="${member##*:}"
+else
+    array=false
+    fi
+    # printf "member = $member\n"
+    member_type=$(echo $member | cut -d : -f 1)
+    member_name=$(echo $member | cut -d : -f 2)
+    
+    if echo $member_type | fgrep -q '*'; then
+	local pointer=true
+    else
+	local pointer=false
+    fi
+    
+    obj=${structure_type%_t}
+    uc_type=$(echo $structure_type | tr '[:lower:]' '[:upper:]')
+    uc_obj=${uc_type%_T}
+    uc_member_name=$(echo $member_name | tr '[:lower:]' '[:upper:]')
+    macro=${uc_obj}_SET_$uc_member_name
+    
+    # Macro
+    # if [ $array = false ]; then
+    #     # Scalar macro
+    #     printf "%-47s %s\n" "#define $macro(ptr,val)" \
+    #            "((ptr)->$member_name = (val))"
+    #     mutator_man $structure_type $member_type $member_name $obj ${macro}
+    # fi
+    
+    #if [ $array = true ] || [ $pointer = true ]; then
+    #    mutator_macros_array $structure_type $member_type $member_name $obj $macro
+    #fi
+
+    # Function
+    if [ $array = false ]; then
+	mutator_function_scalar $structure_type $member_type $member_name $obj $macro
+    fi
+    if [ $array = true ] || [ $pointer = true ]; then
+	mutator_function_ae $structure_type $member_type $member_name $obj $macro
+	mutator_function_cpy $structure_type $member_type $member_name $obj $macro
+    fi
+}
+
+
+##########################################################################
+#   Function description:
 #       Generate macros and man pages for a list of structure members
 #       
 #   History:
@@ -884,6 +976,7 @@ EOM
     IFS=','
     for member in $members; do
 	accessor_macros $structure_type $member >> $accessor_header
+	mutator_functions $structure_type $member >> $mutator_header
     done
     cat $rv_header $accessor_header $mutator_header
 }
@@ -1017,4 +1110,5 @@ while read line; do
     esac
 done < $HEADER
 pause
+cproto -I/usr/local/include $C_CODE >> $mutator_header
 auto-c2man $C_CODE
