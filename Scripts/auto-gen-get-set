@@ -477,6 +477,37 @@ EOM
 
 ##########################################################################
 #   Function description:
+#       Return success if $1 is an unsigned type
+#
+#   Arguments:
+#       $1  typename such as size_t, int, unsigned int
+#
+#   Returns:
+#       
+#   History:
+#   Date        Name        Modification
+#   2022-01-15  Jason Bacon Begin
+##########################################################################
+
+unsigned()
+{
+    if [ $# != 1 ]; then
+	printf "unsigned(): Internal error: No type argument passed.\n"
+	exit 1
+    fi
+    local typename="$1"
+    if echo "$typename" | fgrep -q unsigned; then
+	return 0
+    elif [ "$typename" = size_t ]; then
+	return 0
+    else
+	return 1
+    fi
+}
+
+
+##########################################################################
+#   Function description:
 #       Generate a C mutator function for direct assignment
 #       
 #   History:
@@ -491,6 +522,8 @@ mutator_function_scalar()
     local member_name="$3"
     local obj="$4"
     local macro="$5"
+    local range_low="$6"
+    local range_high="$7"
     
     local call="$function(ptr)"
     local function_man="Temp-man/$function.3"
@@ -506,8 +539,14 @@ mutator_function_scalar()
     
     if echo $member_type | fgrep -q '*'; then
 	sanity="new_$member_name == NULL"
+    elif [ $range_low != none ]; then
+	if unsigned $member_type && [ $range_low = 0 ]; then
+	    sanity="new_$member_name > $range_high"
+	else
+	    sanity="(new_$member_name < $range_low) || (new_$member_name > $range_high)"
+	fi
     else
-	sanity='0'
+	sanity='false'
     fi
     
     cat << EOM >> $C_CODE
@@ -568,7 +607,6 @@ EOM
 int     ${obj}_set_$member_name($structure_type *${obj}_ptr, $member_type new_$member_name$brackets)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
     if ( $sanity )
 	return ${RV_PREFIX}DATA_OUT_OF_RANGE;
     else
@@ -666,7 +704,6 @@ EOM
 int     ${obj}_set_${member_name}_cpy($structure_type *${obj}_ptr, $member_type new_$member_name$brackets, size_t array_size)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
     if ( new_$member_name == NULL )
 	return ${RV_PREFIX}DATA_OUT_OF_RANGE;
     else
@@ -679,13 +716,11 @@ EOM
 EOM
     else
 	cat << EOM >> $C_CODE
-	{
-	    size_t  c;
-	    
-	    // FIXME: Assuming all elements should be copied
-	    for (c = 0; c < array_size; ++c)
-		${obj}_ptr->$member_name[c] = new_$member_name[c];
-	}
+	size_t  c;
+	
+	// FIXME: Assuming all elements should be copied
+	for (c = 0; c < array_size; ++c)
+	    ${obj}_ptr->$member_name[c] = new_$member_name[c];
 EOM
     fi
     cat << EOM >> $C_CODE
@@ -713,6 +748,8 @@ mutator_function_ae()
     local member_name="$3"
     local obj="$4"
     local function="$5"_ae
+    local range_low="$6"
+    local range_high="$7"
     
     local call="$function(ptr)"
     local function_man="Temp-man/$function.3"
@@ -728,12 +765,16 @@ mutator_function_ae()
 	brackets=''
     fi
     
-    if [ "$member_type_deref" = char ]; then
-	sanity="!isprint(new_${member_name}_element) && (new_${member_name}_element != '\0')"
-    elif echo "$member_type_deref" | fgrep -q '*'; then
+    if echo "$member_type_deref" | fgrep -q '*'; then
 	sanity="new_${member_name}_element == NULL"
+    elif [ $range_low != none ]; then
+	if unsigned $member_type && [ $range_low = 0 ]; then
+	    sanity="new_$member_name > $range_high"
+	else
+	    sanity="(new_${member_name}_element < $range_low) || (new_${member_name}_element > $range_high)"
+	fi
     else
-	sanity='0'
+	sanity='false'
     fi
     
     cat << EOM >> $C_CODE
@@ -791,7 +832,6 @@ EOM
 int     ${obj}_set_${member_name}_ae($structure_type *${obj}_ptr, size_t c, $member_type_deref new_${member_name}_element)
 
 {
-    /* FIXME: Replace this with a proper sanity check */
     if ( $sanity )
 	return ${RV_PREFIX}DATA_OUT_OF_RANGE;
     else
@@ -861,6 +901,8 @@ else
     # printf "member = $member\n"
     member_type=$(echo $member | cut -d : -f 1)
     member_name=$(echo $member | cut -d : -f 2)
+    range_low=$(echo $member | cut -d : -f 3)
+    range_high=$(echo $member | cut -d : -f 4)
     
     if echo $member_type | fgrep -q '*'; then
 	local pointer=true
@@ -888,10 +930,12 @@ else
 
     # Function
     if [ $array = false ]; then
-	mutator_function_scalar $structure_type $member_type $member_name $obj $macro
+	mutator_function_scalar $structure_type $member_type \
+	    $member_name $obj $macro $range_low $range_high
     fi
     if [ $array = true ] || [ $pointer = true ]; then
-	mutator_function_ae $structure_type $member_type $member_name $obj $macro
+	mutator_function_ae $structure_type $member_type \
+	    $member_name $obj $macro $range_low $range_high
 	mutator_function_cpy $structure_type $member_type $member_name $obj $macro
     fi
 }
@@ -969,7 +1013,8 @@ EOM
 
 #include <string.h>
 #include <ctype.h>
-#include <stdbool.h>
+#include <stdbool.h>        // In case of bool
+#include <stdint.h>         // In case of int64_t, etc
 #include <xtend/string.h>   // strlcpy() on Linux
 #include "$HEADER"
 EOM
@@ -1064,6 +1109,16 @@ while read line; do
 		# Remove inline comments if present
 		code=$(echo $line | awk -F '[;,]' '{ print $1 }')
 		
+		# User can specify valid range with // aggs:low:high
+		comment=$(echo $line | awk -F '[;,]' '{ print $2 }')
+		if echo $comment | fgrep -q 'aggs:'; then
+		    range_low=$(echo $comment | awk -F : '{ print $2 }')
+		    range_high=$(echo $comment | awk -F : '{ print $3 }')
+		else
+		    range_low=none
+		    range_high=none
+		fi
+		
 		# Remove array size if present
 		no_subscripts=$(echo $code | awk -F '[' '{ print $1 }')
 
@@ -1092,7 +1147,7 @@ while read line; do
 		fi
 		
 		# printf "type = $member_type, name = $member_name\n"
-		member="$member_type:$member_name"
+		member="$member_type:$member_name:$range_low:$range_high"
 		if echo $code | fgrep -q '['; then
 		    array_size=$(echo $code | awk -F '[[\\]]' '{ print $2 }' | tr -d ' ')
 		    member=$member:array:$array_size
