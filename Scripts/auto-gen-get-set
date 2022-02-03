@@ -689,7 +689,7 @@ EOM
 
     cat << EOM >> $C_CODE
  *
- *      if ( ${obj}_set_$member_name(&$obj, new_$member_name, array_size) == ${RV_PREFIX}DATA_OK )
+ *      if ( ${obj}_set_${member_name}_cpy(&$obj, new_$member_name, array_size) == ${RV_PREFIX}DATA_OK )
  *      {
  *      }
  *
@@ -817,7 +817,7 @@ EOM
 
     cat << EOM >> $C_CODE
  *
- *      if ( ${obj}_set_$member_name(&$obj, c, new_${member_name}_element) == ${RV_PREFIX}DATA_OK )
+ *      if ( ${obj}_set_${member_name}_ae(&$obj, c, new_${member_name}_element) == ${RV_PREFIX}DATA_OK )
  *      {
  *      }
  *
