@@ -177,39 +177,39 @@ for source_file in "$@"; do
     my_tty=$(tty)
     
     while read line; do
-	if printf "%s\n" "$line" | grep -q '\*/$' && [ $function_comment = y ]; then
+	if echo "$line" | grep -q '\*/$' && [ $function_comment = y ]; then
 	    mode=synopsis
 	    line=''
 	# A Library: line is required          
-	elif printf "%s\n" "$line" | grep -q '[ ]*\*[ ]*Library:'; then
+	elif echo "$line" | grep -q '[ ]*\*[ ]*Library:'; then
 	    mode=library
 	    line=''
 	    function_comment=y
-	elif printf "%s\n" "$line" | grep -q '[ ]*\*[ ]*Description:'; then
+	elif echo "$line" | grep -q '[ ]*\*[ ]*Description:'; then
 	    mode=description
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '[ ]*\*[ ]*Arguments:'; then
+	elif echo "$line" | grep -q '[ ]*\*[ ]*Arguments:'; then
 	    mode=arguments
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '[ ]*\*[ ]*Returns'; then
+	elif echo "$line" | grep -q '[ ]*\*[ ]*Returns'; then
 	    mode=returns
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '[ ]*\*[ ]*Examples:'; then
+	elif echo "$line" | grep -q '[ ]*\*[ ]*Examples:'; then
 	    mode=examples
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '[ ]*\*[ ]*Files:'; then
+	elif echo "$line" | grep -q '[ ]*\*[ ]*Files:'; then
 	    mode=files
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '[ ]*\*[ ]*Environment:'; then
+	elif echo "$line" | grep -q '[ ]*\*[ ]*Environment:'; then
 	    mode=env
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '[ ]*\*[ ]*See also:'; then
+	elif echo "$line" | grep -q '[ ]*\*[ ]*See also:'; then
 	    mode=see-also
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '[ ]*\*[ ]*History'; then
+	elif echo "$line" | grep -q '[ ]*\*[ ]*History'; then
 	    mode=ignore
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '^[ \t]*{$' && [ $function_comment = y ]; then
+	elif echo "$line" | grep -q '^[ \t]*{$' && [ $function_comment = y ]; then
 	    mode=ignore
 	    gen_page
 	    function_comment=n
@@ -218,61 +218,61 @@ for source_file in "$@"; do
     
 	case $mode in
 	library)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *[*] *||')
+	    line=$(echo "$line" | sed -e 's|^ *[*] *||')
 	    if [ ! -z "$line" ]; then
-		printf "%s\n" "$line" >> c2man-library
+		echo "$line" >> c2man-library
 	    fi
 	    ;;
 	    
 	description)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *[*] *||')
-	    printf "%s\n" "$line" >> c2man-description
+	    line=$(echo "$line" | sed -e 's|^ *[*] *||')
+	    echo "$line" >> c2man-description
 	    ;;
 	    
 	arguments)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *[*] *||')
+	    line=$(echo "$line" | sed -e 's|^ *[*] *||')
 	    if [ ! -z "$line" ]; then
-		printf "%s\n" "$line" >> c2man-arguments
+		echo "$line" >> c2man-arguments
 	    fi
 	    ;;
 	    
 	returns)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *[*] *||')
-	    printf "%s\n" "$line" >> c2man-returns
+	    line=$(echo "$line" | sed -e 's|^ *[*] *||')
+	    echo "$line" >> c2man-returns
 	    ;;
 	    
 	examples)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *[*]      ||')
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *[*] *$||')
-	    printf "%s\n" "$line" >> c2man-examples
+	    line=$(echo "$line" | sed -e 's|^ *[*]      ||')
+	    line=$(echo "$line" | sed -e 's|^ *[*] *$||')
+	    echo "$line" >> c2man-examples
 	    ;;
 	    
 	files)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *[*] *||')
-	    printf "%s\n" "$line" >> c2man-files
+	    line=$(echo "$line" | sed -e 's|^ *[*] *||')
+	    echo "$line" >> c2man-files
 	    ;;
 	    
 	env)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *[*] *||')
-	    printf "%s\n" "$line" >> c2man-env
+	    line=$(echo "$line" | sed -e 's|^ *[*] *||')
+	    echo "$line" >> c2man-env
 	    ;;
 	    
 	see-also)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *[*] *||')
-	    printf "%s\n" "$line" >> c2man-see-also
+	    line=$(echo "$line" | sed -e 's|^ *[*] *||')
+	    echo "$line" >> c2man-see-also
 	    ;;
 	    
 	history)
 	    ;;
 	    
 	synopsis)
-	    if printf "%s\n" "$line" | grep -q '[!-~]'; then
-		if printf "%s\n" "$line" | egrep -q '^[A-Za-z_]+.*\('; then
-		    type_and_name=$(printf "%s\n" "$line" | awk -F '\\(' '{ print $1 }')
+	    if echo "$line" | grep -q '[!-~]'; then
+		if echo "$line" | egrep -q '^[A-Za-z_]+.*\('; then
+		    type_and_name=$(echo "$line" | awk -F '\\(' '{ print $1 }')
 		    name=$(printf "$type_and_name\n" | awk -F '[ \t\*]*' '{ print $NF }')
-		    printf "%s\n" "$line" >> c2man-synopsis
+		    echo "$line" >> c2man-synopsis
 		else
-		    printf "%s\n" "$line" >> c2man-synopsis
+		    echo "$line" >> c2man-synopsis
 		fi
 	    fi
 	    ;;

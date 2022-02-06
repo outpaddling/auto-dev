@@ -186,37 +186,37 @@ for source_file in "$@"; do
     
     while read line && [ $mode != done ]; do
 	# A Synopsis: line is required          
-	if printf "%s\n" "$line" | grep -q '^[ ]*\#[ ]*Synopsis:'; then
+	if echo "$line" | grep -q '^[ ]*\#[ ]*Synopsis:'; then
 	    mode=synopsis
 	    have_name=no
 	    line=''
 	    main_comment=y
-	elif printf "%s\n" "$line" | grep -q '^[ ]*\#[ ]*Description:'; then
+	elif echo "$line" | grep -q '^[ ]*\#[ ]*Description:'; then
 	    mode=description
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '^[ ]*\#[ ]*Arguments:'; then
+	elif echo "$line" | grep -q '^[ ]*\#[ ]*Arguments:'; then
 	    mode=arguments
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '^[ ]*\#[ ]*Returns'; then
+	elif echo "$line" | grep -q '^[ ]*\#[ ]*Returns'; then
 	    mode=returns
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '^[ ]*\#[ ]*Examples:'; then
+	elif echo "$line" | grep -q '^[ ]*\#[ ]*Examples:'; then
 	    mode=examples
 	    line=''
 	    line_count=0
-	elif printf "%s\n" "$line" | grep -q '^[ ]*\#[ ]*Files:'; then
+	elif echo "$line" | grep -q '^[ ]*\#[ ]*Files:'; then
 	    mode=files
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '^[ ]*\#[ ]*Environment:'; then
+	elif echo "$line" | grep -q '^[ ]*\#[ ]*Environment:'; then
 	    mode=env
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '^[ ]*\#[ ]*See also:'; then
+	elif echo "$line" | grep -q '^[ ]*\#[ ]*See also:'; then
 	    mode=see-also
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '^[ ]*\#[ ]*History'; then
+	elif echo "$line" | grep -q '^[ ]*\#[ ]*History'; then
 	    mode=ignore
 	    line=''
-	elif printf "%s\n" "$line" | grep -q '^####' && [ $main_comment = y ]; then
+	elif echo "$line" | grep -q '^####' && [ $main_comment = y ]; then
 	    mode=done
 	    gen_page
 	    main_comment=n
@@ -226,54 +226,56 @@ for source_file in "$@"; do
 	case $mode in
 	synopsis)
 	    if [ ! -z "$line" ]; then
-		line=$(printf "%s\n" "$line" | sed -e 's|^ *# *||')
-		printf "%s\n" "$line" >> script2man-synopsis
+		line=$(echo "$line" | sed -e 's|^ *# *||')
+		echo "$line" >> script2man-synopsis
 	    fi
 	    ;;
 	    
 	description)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *# *||')
-	    printf "%s\n" "$line" >> script2man-description
+	    line=$(echo "$line" | sed -e 's|^ *# *||')
+	    echo "$line" >> script2man-description
 	    ;;
 	    
 	arguments)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *# *||')
+	    line=$(echo "$line" | sed -e 's|^ *# *||')
 	    if [ ! -z "$line" ]; then
-		printf "%s\n" "$line" >> script2man-arguments
+		echo "$line" >> script2man-arguments
 	    fi
 	    ;;
 	    
 	returns)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *# *||')
-	    printf "%s\n" "$line" >> script2man-returns
+	    line=$(echo "$line" | sed -e 's|^ *# *||')
+	    echo "$line" >> script2man-returns
 	    ;;
 	    
 	examples)
 	    # First line is not real, just from line=''
 	    # Respect blanks after that
 	    if [ $line_count -gt 0 ]; then
-		line=$(printf "%s\n" "$line" | sed -e 's|^ *#       ||')
-		line=$(printf "%s\n" "$line" | sed -e 's|^ *# *$||')
-		printf "%s\n" "$line" >> script2man-examples
+		# Trim a specific number of leading spaces for nroff no-fill,
+		# no-adjust environment.  Then trim trailing spaces.
+		line=$(echo "$line" | sed -e 's|^ *#       ||')
+		line=$(echo "$line" | sed -e 's|^ *# *$||')
+		echo "$line" >> script2man-examples
 	    fi
 	    line_count=$(($line_count + 1))
 	    ;;
 	    
 	files)
 	    if [ ! -z "$line" ]; then
-		line=$(printf "%s\n" "$line" | sed -e 's|^ *# *||')
-		printf "%s\n" "$line" >> script2man-files
+		line=$(echo "$line" | sed -e 's|^ *# *||')
+		echo "$line" >> script2man-files
 	    fi
 	    ;;
 	    
 	env)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *# *||')
-	    printf "%s\n" "$line" >> script2man-env
+	    line=$(echo "$line" | sed -e 's|^ *# *||')
+	    echo "$line" >> script2man-env
 	    ;;
 	    
 	see-also)
-	    line=$(printf "%s\n" "$line" | sed -e 's|^ *# *||')
-	    printf "%s\n" "$line" >> script2man-see-also
+	    line=$(echo "$line" | sed -e 's|^ *# *||')
+	    echo "$line" >> script2man-see-also
 	    ;;
 	    
 	history)
