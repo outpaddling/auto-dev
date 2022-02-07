@@ -1043,6 +1043,33 @@ pause()
 
 
 ##########################################################################
+#   Function description:
+#       
+#   Arguments:
+#       
+#   Returns:
+#       
+#   History:
+#   Date        Name        Modification
+#   2022-02-07  Jason Bacon Begin
+##########################################################################
+
+structure_member()
+{
+    local line="$1"
+    
+    if [ "$line" != '{' ] && [ -n "$line" ] && \
+	! echo "$line" | egrep -q '^/?\* |^/?\*$|^\*[ /]|^\*$|^//' && \
+	! echo "$line" | fgrep -q 'union' && \
+	! echo "$line" | fgrep -q '};'; then
+	return 0
+    else
+	return 1
+    fi
+}
+
+
+##########################################################################
 #   Main
 ##########################################################################
 
@@ -1092,9 +1119,7 @@ while read line; do
     structure)
 	if echo $line | fgrep -q 'gen-get-set internal'; then
 	    mode=internal
-	elif [ "$line" != '{' ] && [ -n "$line" ] && \
-	    ! echo "$line" | egrep -q '^/?\* |^/?\*$|^\*[ /]|^\*$|^//'; then
-	    
+	elif structure_member $line; then
 	    # End of structure when we find "} type_t"
 	    if echo $line | egrep -q '\}[ \t].*_t\;'; then
 		# printf "members = $members\n"
