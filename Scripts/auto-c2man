@@ -98,7 +98,11 @@ $(cat c2man-library)
 \" Underline anything that is typed verbatim - commands, etc.
 .SH SYNOPSIS
 .PP
+.nf
+.na
 $(cat c2man-synopsis)
+.ad
+.fi
 
 .SH ARGUMENTS
 .nf
@@ -270,9 +274,9 @@ for source_file in "$@"; do
 		if echo "$line" | egrep -q '^[A-Za-z_]+.*\('; then
 		    type_and_name=$(echo "$line" | awk -F '\\(' '{ print $1 }')
 		    name=$(printf "$type_and_name\n" | awk -F '[ \t\*]*' '{ print $NF }')
-		    echo "$line" >> c2man-synopsis
+		    printf "%s\n" "$line" >> c2man-synopsis
 		else
-		    echo "$line" >> c2man-synopsis
+		    printf "            %s\n" "$line" >> c2man-synopsis
 		fi
 	    fi
 	    ;;
