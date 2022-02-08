@@ -276,7 +276,7 @@ for source_file in "$@"; do
 		    name=$(printf "$type_and_name\n" | awk -F '[ \t\*]*' '{ print $NF }')
 		    printf "%s\n" "$line" >> c2man-synopsis
 		else
-		    printf "            %s\n" "$line" >> c2man-synopsis
+		    printf "%s\n" "$line" >> c2man-synopsis
 		fi
 	    fi
 	    ;;

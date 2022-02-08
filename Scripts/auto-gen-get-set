@@ -391,10 +391,7 @@ EOM
  *  $(date +%Y-%m-%d)  gen-get-set Auto-generated from $HEADER
  ***************************************************************************/
 
-int     ${obj}_set_$member_name(
-	    $structure_type *${obj}_ptr,
-	    $member_type new_$member_name$brackets
-	)
+int     ${obj}_set_$member_name($structure_type *${obj}_ptr, $member_type new_$member_name$brackets)
 
 {
     if ( $sanity )
@@ -486,11 +483,7 @@ EOM
  *  $(date +%Y-%m-%d)  gen-get-set Auto-generated from $HEADER
  ***************************************************************************/
 
-int     ${obj}_set_${member_name}_cpy(
-	    $structure_type *${obj}_ptr,
-	    $member_type new_$member_name$brackets,
-	    size_t array_size
-	)
+int     ${obj}_set_${member_name}_cpy($structure_type *${obj}_ptr, $member_type new_$member_name$brackets, size_t array_size)
 
 {
     if ( new_$member_name == NULL )
@@ -613,11 +606,7 @@ EOM
  *  $(date +%Y-%m-%d)  gen-get-set Auto-generated from $HEADER
  ***************************************************************************/
 
-int     ${obj}_set_${member_name}_ae(
-	    $structure_type *${obj}_ptr,
-	    size_t c,
-	    $member_type_deref new_${member_name}_element
-	)
+int     ${obj}_set_${member_name}_ae($structure_type *${obj}_ptr, size_t c, $member_type_deref new_${member_name}_element)
 
 {
     if ( $sanity )
