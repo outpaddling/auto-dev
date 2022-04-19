@@ -45,7 +45,7 @@
 usage()
 {
     printf "Usage: $0 file.h lib-flags return-value-prefix [header-subdir/]\n"
-    printf "Example: $0 bed.h '-lbiolibc -lxtend' BL_ biolibc/\n"
+    printf "Example: $0 bed.h '-lbiolibc -lxtend' BL_BED_ biolibc/\n"
     exit 1
 }
 
