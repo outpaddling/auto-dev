@@ -2,15 +2,36 @@
 
 ##########################################################################
 #   Synopsis:
-#       auto-gen-get-set file.h lib-flags return-value-prefix [header-subdir]
+#       auto-gen-get-set-opaque file-private.h lib-flags return-value-prefix [header-subdir]
 #
 #   Description:
-#       auto-gen-get-set generates get (accessor) and set (mutator) macros
-#       and set (mutator) functions for the first structure in the header file
-#       file.h.
+#       auto-gen-get-set-opaque
+#       generates get (accessor) and set (mutator) macros
+#       and set (mutator) functions for the first structure in the header
+#       file file-private.h.
 #
 #       Each header should define exactly one class structure, following
 #       object-oriented design standards.
+#
+#       The structure should be opaque, meaning that it is defined in
+#       a private header file that is not installed.
+#       file-private.h should define the structure as a tag and include
+#       the API header, file.h, which defines the type.
+#
+#       .nf
+#       // file-private.h, used only by this project and not installed
+#       struct name
+#       {
+#           ...
+#       };
+#
+#       #include "file.h"
+#
+#       // file.h, the API header used by dependent software
+#       // Does not define the structure, so other software must use
+#       // the API defined by this project
+#       typedef struct name name_t;
+#       .fi
 #
 #       lib-flags (e.g. -lbiolibc) indicate the require library for the class
 #       and are included in the synopsis.
@@ -32,7 +53,7 @@
 #       0 on success, non-zero error codes otherwise
 #
 #   Examples:
-#       auto-gen-get-set bed.h '-lbiolibc -lxtend' BL_ biolibc/
+#       auto-gen-get-set-opaque bed.h '-lbiolibc -lxtend' BL_ biolibc/
 #
 #   See also:
 #       auto-c2man(1), auto-script2man(1)

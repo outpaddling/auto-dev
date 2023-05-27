@@ -2,15 +2,18 @@
 
 ##########################################################################
 #   Synopsis:
-#       auto-gen-get-set file.h lib-flags return-value-prefix [header-subdir]
+#       auto-gen-get-set-transparent file.h lib-flags return-value-prefix [header-subdir]
 #
 #   Description:
-#       auto-gen-get-set generates get (accessor) and set (mutator) macros
+#       auto-gen-get-set-transparent generates get (accessor) and set (mutator) macros
 #       and set (mutator) functions for the first structure in the header file
 #       file.h.
 #
 #       Each header should define exactly one class structure, following
 #       object-oriented design standards.
+#
+#       This header is assumed to make the structure transparent to
+#       dependent software, i.e. they can see the structure contents.
 #
 #       lib-flags (e.g. -lbiolibc) indicate the require library for the class
 #       and are included in the synopsis.
@@ -32,7 +35,7 @@
 #       0 on success, non-zero error codes otherwise
 #
 #   Examples:
-#       auto-gen-get-set bed.h '-lbiolibc -lxtend' BL_ biolibc/
+#       auto-gen-get-set-transparent bed.h '-lbiolibc -lxtend' BL_ biolibc/
 #
 #   See also:
 #       auto-c2man(1), auto-script2man(1)
