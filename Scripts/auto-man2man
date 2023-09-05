@@ -1,0 +1,57 @@
+#!/bin/sh -e
+
+##########################################################################
+#   Synopsis:
+#       
+#   Description:
+#       
+#   Arguments:
+#       
+#   Returns:
+#
+#   Examples:
+#
+#   Files:
+#
+#   Environment:
+#
+#   See also:
+#       
+#   History:
+#   Date        Name        Modification
+#   2023-09-05  Jason Bacon Begin
+##########################################################################
+
+usage()
+{
+    printf "Usage: $0\n"
+    exit 1
+}
+
+
+##########################################################################
+#   Main
+##########################################################################
+
+if [ $# -lt 1 ]; then
+    usage
+fi
+files="$@"
+
+found=no
+for file in $files; do
+    section=${file##*.}
+    while read line; do
+	if echo "$line" | grep -q '.SH.*NAME'; then
+	    found=yes
+	elif [ $found = yes ]; then
+	    # Quit at end of section
+	    if echo "$line" | fgrep -q '.SH'; then
+		found=no
+		break
+	    elif echo "$line" | grep -q '[\!-\~]' && ! echo "$line" | grep -q '^\.[A-Za-z]'; then
+		echo "$line" | sed -e "s|()|($section)|g"
+	    fi
+	fi
+    done < $file
+done

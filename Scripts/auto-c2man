@@ -87,15 +87,16 @@ gen_page()
 .TH $name 3
 EOM
 
-    if [ -e c2man-summary ]; then
+    if [ -e c2man-name ]; then
 	cat << EOM >> Temp-man/$name.3
 
 .SH NAME
-$(cat c2man-summary)
+$(cat c2man-name)
 EOM
     fi
 
     cat << EOM >> Temp-man/$name.3
+
 .SH LIBRARY
 \" Indicate #includes, library name, -L and -l flags
 .nf
@@ -194,7 +195,7 @@ for source_file in "$@"; do
 	    mode=synopsis
 	    line=''
 	elif echo "$line" | grep -q '[ ]*\*[ ]*Name:'; then
-	    mode=summary
+	    mode=name
 	    line=''
 	# A Library: line is required          
 	elif echo "$line" | grep -q '[ ]*\*[ ]*Library:'; then
@@ -233,9 +234,11 @@ for source_file in "$@"; do
 	fi
     
 	case $mode in
-	summary)
+	name)
 	    line=$(echo "$line" | sed -e 's|^ *[*] *||')
-	    echo "$line" >> c2man-summary
+	    if [ ! -z "$line" ]; then
+		echo "$line" >> c2man-name
+	    fi
 	    ;;
 	    
 	library)
