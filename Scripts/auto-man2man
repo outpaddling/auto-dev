@@ -24,7 +24,7 @@
 
 usage()
 {
-    printf "Usage: $0\n"
+    printf "Usage: $0 man-source [man-source ...]\n"
     exit 1
 }
 
