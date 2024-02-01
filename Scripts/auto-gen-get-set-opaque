@@ -53,7 +53,7 @@
 #       0 on success, non-zero error codes otherwise
 #
 #   Examples:
-#       auto-gen-get-set-opaque bed.h '-lbiolibc -lxtend' BL_ biolibc/
+#       auto-gen-get-set-opaque bed-private.h '-lbiolibc -lxtend' BL_ biolibc/
 #
 #   See also:
 #       auto-c2man(1), auto-script2man(1)
@@ -1062,7 +1062,7 @@ structure_member()
 #   Main
 ##########################################################################
 
-if [ $# -lt 2 ]; then
+if [ $# -lt 3 ]; then
     usage
 fi
 HEADER=$1
@@ -1089,9 +1089,14 @@ mode=ignore
 while read line; do
     case $mode in
     ignore)
-	if echo $line | egrep -q 'typedef[ \t]struct'; then
+	if echo $line | egrep -q 'struct[ \t]'; then
 	    mode=structure
 	    members=''
+	    # Squeeze multiple spaces before awk
+	    echo $line | tr -s ' '
+	    structure_type=$(echo $line | tr -s ' ' \
+		| awk -F '[ \t;]' '{ print $2 }')"_t"
+	    printf "Structure type: %s\n" $structure_type
 	fi
 	;;
     
@@ -1108,69 +1113,66 @@ while read line; do
     structure)
 	if echo $line | fgrep -q 'gen-get-set internal'; then
 	    mode=internal
+	    # End of structure when we find "};"
+	elif echo $line | fgrep -q '};'; then
+	    printf "End of struct def.\n"
+	    printf "members = $members\n"
+	    mode=ignore
+	    # printf "structure_type = '$structure_type'\n"
+	    gen_macros $structure_type $members
+	    break   # One class per header
 	elif structure_member $line; then
-	    # End of structure when we find "} type_t"
-	    if echo $line | egrep -q '\}[ \t].*_t\;'; then
-		# printf "members = $members\n"
-		mode=ignore
-		# Squeeze multiple spaces before awk
-		structure_type=$(echo $line | tr -s ' ' \
-		    | awk -F '[ \t;]' '{ print $2 }')
-		# printf "structure_type = '$structure_type'\n"
-		gen_macros $structure_type $members
-		break   # One class per header
+	    # Remove inline comments if present
+	    code=$(echo $line | awk -F '[;,]' '{ print $1 }')
+	    
+	    # User can specify valid range with // aggs:low:high
+	    comment=$(echo $line | awk -F '[;,]' '{ print $2 }')
+	    if echo $comment | fgrep -q 'aggs:'; then
+		range_low=$(echo $comment | awk -F : '{ print $2 }')
+		range_high=$(echo $comment | awk -F : '{ print $3 }')
 	    else
-		# Remove inline comments if present
-		code=$(echo $line | awk -F '[;,]' '{ print $1 }')
-		
-		# User can specify valid range with // aggs:low:high
-		comment=$(echo $line | awk -F '[;,]' '{ print $2 }')
-		if echo $comment | fgrep -q 'aggs:'; then
-		    range_low=$(echo $comment | awk -F : '{ print $2 }')
-		    range_high=$(echo $comment | awk -F : '{ print $3 }')
-		else
-		    range_low=none
-		    range_high=none
-		fi
-		
-		# Remove array size if present
-		no_subscripts=$(echo $code | awk -F '[' '{ print $1 }')
+		range_low=none
+		range_high=none
+	    fi
+	    
+	    # Remove array size if present
+	    no_subscripts=$(echo $code | awk -F '[' '{ print $1 }')
 
-		# Works whether there's a type on this line or not
-		member_name=$(echo $no_subscripts | awk -F '[ \t]' '{ print $NF }')
-		
-		# Type is everything but the var name
-		nf=$(echo $no_subscripts | awk -F '[ \t]' '{ print NF }')
-		if [ $nf -gt 1 ]; then
-		    if echo $member_name | fgrep -q '*'; then
-			# ${var%format} has problems with * in format
-			base_type=$(echo $no_subscripts | awk -F '*' '{ print $1 }')
-		    else
-			base_type=${no_subscripts%$member_name}
-		    fi
-		    # Remove trailing space
-		    base_type=$(echo $base_type | sed -E 's|[ \t]$||g')
-		fi
-		
-		# member_type = base_type + *s transferred from name
-		member_type="$base_type"
-		member_stars=${member_name%%[A-Za-z_]*}
-		if [ -n "$member_stars" ]; then
-		    member_type="$member_type $member_stars"
-		    member_name=${member_name##*\*}
-		fi
-		
-		# printf "type = $member_type, name = $member_name\n"
-		member="$member_type:$member_name:$range_low:$range_high"
-		if echo $code | fgrep -q '['; then
-		    array_size=$(echo $code | awk -F '[[\\]]' '{ print $2 }' | tr -d ' ')
-		    member=$member:array:$array_size
-		fi
-		if [ -z "$members" ]; then
-		    members="$member"
+	    # Works whether there's a type on this line or not
+	    member_name=$(echo $no_subscripts | awk -F '[ \t]' '{ print $NF }')
+	    printf "member_name = %s\n" $member_name
+	    
+	    # Type is everything but the var name
+	    nf=$(echo $no_subscripts | awk -F '[ \t]' '{ print NF }')
+	    if [ $nf -gt 1 ]; then
+		if echo $member_name | fgrep -q '*'; then
+		    # ${var%format} has problems with * in format
+		    base_type=$(echo $no_subscripts | awk -F '*' '{ print $1 }')
 		else
-		    members="$members,$member"
+		    base_type=${no_subscripts%$member_name}
 		fi
+		# Remove trailing space
+		base_type=$(echo $base_type | sed -E 's|[ \t]$||g')
+	    fi
+	    
+	    # member_type = base_type + *s transferred from name
+	    member_type="$base_type"
+	    member_stars=${member_name%%[A-Za-z_]*}
+	    if [ -n "$member_stars" ]; then
+		member_type="$member_type $member_stars"
+		member_name=${member_name##*\*}
+	    fi
+	    
+	    # printf "type = $member_type, name = $member_name\n"
+	    member="$member_type:$member_name:$range_low:$range_high"
+	    if echo $code | fgrep -q '['; then
+		array_size=$(echo $code | awk -F '[[\\]]' '{ print $2 }' | tr -d ' ')
+		member=$member:array:$array_size
+	    fi
+	    if [ -z "$members" ]; then
+		members="$member"
+	    else
+		members="$members,$member"
 	    fi
 	fi
 	;;
