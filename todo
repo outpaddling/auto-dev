@@ -1,1 +1,2 @@
+Consolidate auto-gen-get-set scripts into one with transparent|opaque arg
 Don't assume pointers are arrays and generate _ae mutators

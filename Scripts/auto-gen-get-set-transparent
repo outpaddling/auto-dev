@@ -252,11 +252,6 @@ accessor_macros()
     fi
     if echo $member_type | fgrep -q '*'; then
 	local pointer=true
-	printf "Can $member_name be used as an array? y/[n] "
-	read pointer_is_array
-	if [ 0$pointer_is_array = 0y ];then
-	    array=true
-	fi
     else
 	local pointer=false
     fi
@@ -658,11 +653,6 @@ else
     
     if echo $member_type | fgrep -q '*'; then
 	local pointer=true
-	printf "Can $member_name be used as an array? y/[n] "
-	read pointer_is_array
-	if [ 0$pointer_is_array = 0y ];then
-	    array=true
-	fi
     else
 	local pointer=false
     fi
