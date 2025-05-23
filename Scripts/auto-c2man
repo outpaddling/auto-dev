@@ -2,7 +2,7 @@
 
 ##########################################################################
 #   Synopsis:
-#       auto-c2man file.c
+#       auto-c2man file.c [file.c ...]
 #       
 #   Description:
 #       Generate man pages for all functions in a C source file.
@@ -51,7 +51,7 @@
 
 usage()
 {
-    printf "Usage: $0 source-file\n"
+    printf "Usage: $0 source-file [source-file ...]\n"
     exit 1
 }
 

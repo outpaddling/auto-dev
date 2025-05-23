@@ -2,7 +2,7 @@
 
 ##########################################################################
 #   Synopsis:
-#       auto-script2man script-filename
+#       auto-script2man script-filename [script-filename ...]
 #       
 #   Description:
 #       auto-script2man generates a man page from an embedded comment
@@ -63,7 +63,7 @@
 
 usage()
 {
-    printf "Usage: $0 source-file\n"
+    printf "Usage: $0 source-file [source file ...]\n"
     exit 1
 }
 
