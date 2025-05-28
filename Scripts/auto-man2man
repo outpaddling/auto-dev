@@ -38,18 +38,22 @@ if [ $# -lt 1 ]; then
 fi
 files="$@"
 
-found=no
+in_name_section=no
 for file in $files; do
     section=${file##*.}
     while read line; do
-	if echo "$line" | grep -q '.SH.*NAME'; then
-	    found=yes
-	elif [ $found = yes ]; then
-	    # Quit at end of section
-	    if echo "$line" | fgrep -q '.SH'; then
-		found=no
-		break
-	    elif echo "$line" | grep -q '[\!-\~]' && ! echo "$line" | grep -q '^\.[A-Za-z]'; then
+	if echo "$line" | grep -q '^\.SH.*NAME'; then
+	    in_name_section=yes
+	    # Debug: printf "Found NAME section.\n"
+	elif [ $in_name_section = yes ]; then
+	    # Quit at end of SYNOPSIS section
+	    if echo "$line" | grep -q '^\.SH'; then
+		in_name_section=no
+		break   # Move on to next file
+	    # Echo content of SYOPSIS section, but not tags
+	    elif echo "$line" | grep -q '[\!-\~]' && \
+		 ! echo "$line" | grep -q '^\.[A-Za-z]' && \
+		 ! echo "$line" | grep -q '^\"'; then
 		echo "$line" | sed -e "s|()|($section)|g"
 	    fi
 	fi
