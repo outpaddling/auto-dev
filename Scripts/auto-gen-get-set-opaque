@@ -892,10 +892,8 @@ else
     macro=${uc_obj}_SET_$uc_member_name
     
     # Function
-    if [ $array = false ]; then
-	accessor_function_scalar $structure_type $member_type \
-	    $member_name $obj $macro $range_low $range_high
-    fi
+    accessor_function_scalar $structure_type $member_type \
+	$member_name $obj $macro $range_low $range_high
     if [ $array = true ] || [ $pointer = true ]; then
 	accessor_function_ae $structure_type $member_type \
 	    $member_name $obj $macro $range_low $range_high
