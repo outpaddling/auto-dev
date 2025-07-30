@@ -892,8 +892,13 @@ else
     macro=${uc_obj}_SET_$uc_member_name
     
     # Function
-    accessor_function_scalar $structure_type $member_type \
-	$member_name $obj $macro $range_low $range_high
+    if [ $array = true ]; then
+	accessor_function_scalar $structure_type "$member_type *" \
+	    $member_name $obj $macro $range_low $range_high
+    else
+	accessor_function_scalar $structure_type $member_type \
+	    $member_name $obj $macro $range_low $range_high
+    fi
     if [ $array = true ] || [ $pointer = true ]; then
 	accessor_function_ae $structure_type $member_type \
 	    $member_name $obj $macro $range_low $range_high
@@ -1087,7 +1092,7 @@ mode=ignore
 while read line; do
     case $mode in
     ignore)
-	if echo $line | egrep -q 'struct[ \t]'; then
+	if echo $line | egrep -q '^struct[ \t]'; then
 	    mode=structure
 	    members=''
 	    # Squeeze multiple spaces before awk
