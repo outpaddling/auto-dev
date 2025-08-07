@@ -65,8 +65,15 @@
 
 usage()
 {
-    printf "Usage: $0 file.h lib-flags return-value-prefix [header-subdir/]\n"
-    printf "Example: $0 bed.h '-lbiolibc -lxtend' BL_BED_ biolibc/\n"
+    cat << EOM
+
+Usage:   $0 file-private.h lib-flags return-value-prefix [header-subdir/]
+Example: $0 bed-private.h '-lbiolibc -lxtend' BL_BED_ biolibc/
+
+Note:   Use the private header containing the structure definition,
+	not the public header for use by consumers.
+
+EOM
     exit 1
 }
 

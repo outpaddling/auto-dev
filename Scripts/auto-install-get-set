@@ -1,0 +1,41 @@
+#!/bin/sh -e
+
+##########################################################################
+#   Script description:
+#       Move gen-get-set temporary files into place
+#       
+#   History:
+#   Date        Name        Modification
+#   2021-07-25  Jason Bacon Begin
+##########################################################################
+
+usage()
+{
+    cat << EOM
+
+Usage:   $0 header
+Example: $0 bed.h
+
+Note: Unlike auto-gen-get-set, use the public header here, not the
+      private header.
+
+EOM
+    exit 1
+}
+
+
+##########################################################################
+#   Main
+##########################################################################
+
+if [ $# != 1 ]; then
+    usage
+fi
+header=$1
+stem=${header%.h}
+
+for file in $(ls temp-$stem*); do
+    mv $file ${file#temp-}
+done
+mv Temp-man/* Man
+rmdir Temp-man
