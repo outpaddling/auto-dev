@@ -1,2 +1,6 @@
+
 Consolidate auto-gen-get-set scripts into one with transparent|opaque arg
+
 Don't assume pointers are arrays and generate _ae mutators
+
+c2man: Don't put #includes in synopsis, even if they come after comment

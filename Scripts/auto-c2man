@@ -290,6 +290,7 @@ for source_file in "$@"; do
 	    ;;
 	    
 	synopsis)
+	    # FIXME: Skip over #includes if they come after block comment
 	    if echo "$line" | grep -q '[!-~]'; then
 		if echo "$line" | egrep -q '^[A-Za-z_]+.*\('; then
 		    type_and_name=$(echo "$line" | awk -F '\\(' '{ print $1 }')
