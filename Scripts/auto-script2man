@@ -101,7 +101,7 @@ gen_page()
 \" auto-man2man (used in generating subcommand lists) depends on this section
 .SH NAME
 .PP
-$title \- Basic description here
+$name
 
 \" Convention:
 \" Underline anything that is typed verbatim - commands, etc.
@@ -205,6 +205,9 @@ for source_file in "$@"; do
 	elif echo $line | grep -q '^[ ]*\#[ ]*Section:'; then
 	    mode=section
 	    line=''
+	elif echo $line | grep -q '^[ ]*\#[ ]*Name:'; then
+	    mode=name
+	    line=''
 	elif echo "$line" | grep -q '^[ ]*\#[ ]*Synopsis:'; then
 	    mode=synopsis
 	    line=''
@@ -251,6 +254,16 @@ for source_file in "$@"; do
 		fi
 		# Avoid setting title again using blank lines below
 		title_set=yes
+	    fi
+	    ;;
+	    
+	name)
+	    if [ ! -z "$line" ]; then
+		if [ -z "$name_set" ]; then
+		    name=$(echo "$line" | sed -e 's|^ *# *||')
+		fi
+		# Avoid setting title again using blank lines below
+		name_set=yes
 	    fi
 	    ;;
 	    
