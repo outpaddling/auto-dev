@@ -54,7 +54,7 @@ for file in $files; do
 	    elif echo "$line" | grep -q '[\!-\~]' && \
 		 ! echo "$line" | grep -q '^\.[A-Za-z]' && \
 		 ! echo "$line" | grep -q '^\"'; then
-		echo "$line" | sed -e "s|()|($section)|g"
+		echo "$line" | sed -e "s| - |($section) - |g"
 	    fi
 	fi
     done < $file
